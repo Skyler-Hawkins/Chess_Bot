@@ -283,7 +283,22 @@ class AI:
         Want to encourage promoting pawns at the end.
         Midgame seems fine.
     '''
-
+    # checking if white king is checked: 
+    def check_white_king(self,gametiles):
+        x=0
+        y=0
+        for m in range(8):
+            for k in range(8):
+                if(gametiles[m][k].pieceonTile.tostring()=='k'):
+                    x=m
+                    y=k
+        for m in range(8):
+            for k in range(8):
+                if(gametiles[m][k].pieceonTile.alliance=='Black'):
+                    moves=gametiles[m][k].pieceonTile.legalmoveb(gametiles)
+                    if moves!=None:
+                        return "checked"
+        return "notchecked"
 
     def calculateb(self,gametiles):
         value=0
@@ -377,13 +392,14 @@ class AI:
         K_pos = [0,0]
         k_pos = [0,0]
         only_has_king = True
+
+
         for x in range(8):
             for y in range(8):
                     current_piece_eval = gametiles[y][x].pieceonTile
                     currentPiece = current_piece_eval.tostring()
 
                     if currentPiece=='P':
-                        print("y and x coordinates: " + str(y) + " " + str(x))
                 
                         value -= (100 - piece_square_tables['PawnMidgame'][y][x])
                         attack_value = self.get_piece_attacks(current_piece_eval, gametiles)
@@ -455,6 +471,7 @@ class AI:
             endgame = True
         x, y = K_pos
         x_k, y_k = k_pos
+        # TO-DO: Add difference in endgame behavior based on the total piece value, for now am using naive approach of checking for only the enemy king remaining
         if endgame:
             
             value -= 10000 - piece_square_tables['KingEndgame'][y][x]
@@ -466,14 +483,13 @@ class AI:
         # need to highly highly prioritize taking the king
         if only_has_king:
         # Here, we can go all-out, highly prioritize checking the king with as many pieces as possible
-            print("now only has king:")
             king_position = (y_k * 8) + x_k
             white_king = king("White", king_position)
             white_king_moves = white_king.legalmoveb(gametiles)
             # want to really prioritize promoting pawns, and checking the king
             # try to check the king with as many pieces as possible
             try:
-                is_checked = move.checkw(self, gametiles)
+                is_checked = self.check_white_king(gametiles)
                 if is_checked[0] == "checked":
                     value -= 5000
             except Exception as e:
